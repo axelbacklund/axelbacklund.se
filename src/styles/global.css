@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './typography.css';
+
+@layer base {
+  body {
+    @apply bg-bone;
+    @apply dark:bg-black;
+    @apply text-off-black;
+    @apply dark:text-bone;
+  }
+}
