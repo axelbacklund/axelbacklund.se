@@ -19,7 +19,7 @@ const IndexPage = ({ data }: PageProps<Queries.IndexPostsQuery>) => {
           </p>
         </div>
 
-        <div className="p-4 lg:p-10 max-w-full">
+        <div className="p-4 lg:p-10 max-w-full overflow-hidden">
           <div className="flex flex-wrap -mx-8 -mt-8 overflow-hidden xl:-mx-8">
             {data.allMdx.edges.map(({ node }) => (
               <div
