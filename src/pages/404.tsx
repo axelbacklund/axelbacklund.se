@@ -1,8 +1,15 @@
 import * as React from 'react'
-import { Link, HeadFC } from 'gatsby'
+import { HeadFC } from 'gatsby'
+import Layout from '../components/Layout'
 
 const NotFoundPage = () => {
-  return <p>404 not found yeet back</p>
+  return (
+    <Layout>
+      <div className="p-4 lg:p-10">
+        <p>404 not found yeet back</p>
+      </div>
+    </Layout>
+  )
 }
 
 export default NotFoundPage
