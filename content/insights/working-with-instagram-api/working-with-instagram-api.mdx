@@ -13,7 +13,7 @@ In 2017, I created the app Feedr. It started as a relatively simple app that all
 
 ![Frame 2.png](images/Frame_2.png)
 
-Everything went well, way better than expected. I reached some 250,000 downloads after a couple of years. Then, the Cambridge Analytica scandal happened. Not only did Facebook manage to screw up user privacy completely, they also managed to fail their developers spectacularly in the aftermath. Because one day, Feedr wasn’t working properly anymore. The API calls to Facebook received a 404. This was part of [Facebook’s effort to restrict its APIs](https://techcrunch.com/2018/04/04/facebook-instagram-api-shut-down/), which is understandable from a user privacy standpoint, but it was poorly communicated to us developers.
+Everything went well, way better than expected. I reached some 250,000 downloads after a some years. Then, the Cambridge Analytica scandal happened. In connection to this, one day, Feedr wasn’t working properly anymore. The API calls to Facebook received a 404. This was part of [Facebook’s effort to restrict its APIs](https://techcrunch.com/2018/04/04/facebook-instagram-api-shut-down/), which is understandable from a user privacy standpoint, but it was poorly communicated to us developers.
 
 Facebook then released a new API for Instagram that was way more restricted; none of the data fields present in the screenshots above could be fetched, apart from a user’s media. Moreover, all access tokens created had a short validity, so it became common that users had to sign in again in the app if they hadn’t used it for a while. Not ideal, but I anyways started on a Feedr update to accommodate for these changes. When it was all done and ready to go, Facebook required me to submit the app for review to gain access. Fair enough, I thought. I had to record a video of how the app works and upload it — only to have it rejected.
 
@@ -21,7 +21,7 @@ Apparently I had broken a new rule on how a user should be onboarded to an app u
 
 > **Authentication** — Instagram Basic Display is not an authentication solution. Data returned by the API cannot be used to authenticate your app users or log them into your app. If you need an authentication solution we recommend using [Facebook Login](https://developers.facebook.com/docs/facebook-login) instead.
 
-Very unclear rule by Facebook as Feedr relies 100% on having an Instagram account connected, so why am I not allowed to prompt users to log in first thing when they open the app? I don’t even create an account on my end based on their Instagram account, it’s only to fetch their data.
+Quite unclear rule by Facebook as Feedr relies 100% on having an Instagram account connected, so why am I not allowed to prompt users to log in first thing when they open the app? I don’t even create an account on my end based on their Instagram account, it’s only to fetch their data.
 
 I tried some other design solutions, such as removing the login screen and instead have a “Connect Instagram” button on the main screen. These did not pass either for the same reason as earlier. Having a lot of work in school at this time, I abandoned the app and removed it from the App Store in wait for better times.
 
@@ -49,7 +49,7 @@ guard let code = urlString.slice(from: "code=", to: "#_") else { throw Instagram
 3. Exchange the _short lived token_ for a _long lived token,_ which is valid for 60 days, and can be refreshed. Store this token securely.
 4. Get the user's username/media.
 
-Many different calls that all need to be chained. In Swift, this could lead to [callback hell](https://swiftrocks.com/avoiding-callback-hell-in-swift), but recently they introduced async/await. A very welcome addition which I took advantage of. As an example, this is what the sign in function looks like in the app, quite clean compared to what networking code could look like before.
+Many different calls that all need to be chained. In Swift, this could lead to [callback hell](https://swiftrocks.com/avoiding-callback-hell-in-swift), but recently they introduced async/await. A welcome addition which I took advantage of. As an example, this is what the sign in function looks like in the app, quite clean compared to what networking code could look like before.
 
 ```swift
 func signIn() async throws -> Token { // returns a long-lived token
