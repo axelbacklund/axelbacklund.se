@@ -1,0 +1,100 @@
+---
+title: iOS photos picker with SwiftUI
+date: 2023-01-06
+imagePath: boihouse.png
+slug: /ios-photos-picker-with-swiftui
+---
+
+The built-in photos picker in iOS, `PHPickerViewController`, is definitely the easiest and most powerful way to let users select photos in your app. Some of the best features which are not accessible through PhotosKit are for instance photos search and access to the special Faces album — features which I use often when selecting photos. Though, the way you interact with it in code can be bulky at times.
+
+# Problem
+
+I had an implementation of the photos picker that worked well. It was presented through a `UIViewControllerRepresentable` with a binding variable of type `[UIImage]`, representing the photos being selected by the user. The steps for selecting was:
+
+1. Present the picker
+2. When images are selected (`didFinishPicking` called by the `PHPicker`), we get an array of `PHPickerResult`. These are not actually photos we can display, but rather types “that represent a selected asset from the user’s photo library” — meaning we have to load the images from each `PHPickerResult`. This can take some time, especially if the image stored in iCloud and you have a spotty Internet connection.
+3. The `PHPickerResult`types are converted to `UIImage` using a Swift async/await wrapper I wrote for the `loadObject` function on the result. It looks like this:
+
+```swift
+func resultToImage(provider: NSItemProvider) async -> UIImage? {
+    await withCheckedContinuation { continuation in
+        if provider.canLoadObject(ofClass: UIImage.self) {
+            provider.loadObject(ofClass: UIImage.self) { image, _ in
+                continuation.resume(returning: image as? UIImage)
+            }
+        } else {
+            continuation.resume(returning: nil)
+        }
+    }
+}
+```
+
+where we get the `NSItemProvider` from each `PHPickerResult`. When this function is run for each result, the UI simply presents a simple loading spinner.
+
+The loading spinner is what bugged me. The user should be able to see an indication of download progress on each image, instead of a global spinner blocking the UI.
+
+# Solution
+
+Loading progress on each image is provided in the `loadObject` method we used earlier — we can simply write **`let** progress = provider.loadObject(ofClass: UIImage.**self**) {}`to get a`Progress`object. This was outlined in [this](https://developer.apple.com/videos/play/wwdc2021/10046/) WWDC session from 2021 — but no explanation was given on how to handle the`Progress`class well in SwiftUI. What we want is a function that starts fetching an image, reports progress if not done and if done it returns the image. Moreover, it should throw errors should they happen.
+
+The solution I found to this was to use `AsyncThrowingStream`. It is defined as “an asynchronous sequence generated from an error-throwing closure that calls a continuation to produce new elements.”, i.e. a way to port closure-based code to an async-await context. This is then how I implemented the aforementioned function:
+
+```swift
+enum LoadingUIImageState {
+    case loading(progress: CGFloat)
+    case done(result: UIImage)
+}
+
+private var observation: NSKeyValueObservation?
+
+private mutating func getUIImageProcess(using provider: NSItemProvider) -> AsyncThrowingStream<LoadingUIImageState, Error> {
+    return AsyncThrowingStream { continuation in
+        if provider.canLoadObject(ofClass: UIImage.self) {
+            let progress = provider.loadObject(ofClass: UIImage.self) { image, _ in
+                guard let image = image as? UIImage else {
+                    continuation.finish(throwing: UIImageLoadingError.noImageAvailable)
+                    return
+                }
+
+                continuation.yield(.done(result: image))
+                continuation.finish()
+            }
+
+            observation = progress.observe(\.fractionCompleted) { progress, _ in
+                continuation.yield(.loading(progress: progress.fractionCompleted))
+            }
+        } else {
+            continuation.finish(throwing: UIImageLoadingError.cannotLoadUIImage)
+        }
+    }
+}
+```
+
+which is defined in a custom struct that represents a single image. The function has to be marked as `mutating`as it accesses and alters the `observation` value — I didn’t manage to get the observation to work with a local variable for the `progress.observe`, had to use a struct-wide global variable. The function call probably gets deallocated for some reason if not stored in the struct itself.
+
+All of this can then be used elegantly like this:
+
+```swift
+mutating func getUIImageWithProgress() async -> UIImage? {
+    if let result = pickerResult {
+        do {
+            for try await state in getUIImageProcess(using: result.itemProvider) {
+                switch state {
+                case let .loading(progress):
+                    self.loadingProgress = progress
+                case let .done(result):
+                    self.loadingProgress = 1.0
+                    return result
+                }
+            }
+        } catch let error {
+            print("error:", error)
+        }
+    }
+    return nil
+}
+```
+
+i.e. a function that updates the struct’s `loadingProgress` variable when loading, and when done, it returns an optional UIImage. In the UI, it looks like this:
+
+![Simulator Screen Recording - iPhone 14 Pro - 2023-01-06 at 21.07.21.gif](images/Simulator_Screen_Recording_-_iPhone_14_Pro_-_2023-01-06_at_21.07.21.gif)
