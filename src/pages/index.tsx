@@ -12,10 +12,9 @@ const IndexPage = ({ data }: PageProps<Queries.IndexPostsQuery>) => {
       <Layout>
         <div className="bg-green-lighter dark:bg-green-darker text-white px-4 lg:px-10 pb-6 pt-16">
           <p>
-            I occasionally post some insights on AI, app development and
-            cleantech.
+            I occasionally post some insights on projects I'm working on.
             <br />
-            Currently, I study engineering and architecture at KTH.
+            Currently, I study engineering at KTH.
           </p>
         </div>
 

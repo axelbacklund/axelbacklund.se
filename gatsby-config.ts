@@ -4,7 +4,7 @@ const config: GatsbyConfig = {
   siteMetadata: {
     title: `Axel Backlund`,
     description: 'Some insights on AI, app development and cleantech',
-    siteUrl: `https://www.yourdomain.tld`,
+    siteUrl: `https://www.axelbacklund.se`,
     image: `src/images/icon.png`,
   },
   graphqlTypegen: true,
@@ -24,6 +24,14 @@ const config: GatsbyConfig = {
       resolve: `gatsby-plugin-mdx`,
       options: {
         gatsbyRemarkPlugins: [
+          `gatsby-remark-copy-linked-files`,
+          {
+            resolve: `gatsby-remark-prismjs`,
+            options: {
+              noInlineHighlight: true,
+              showLineNumbers: false,
+            },
+          },
           {
             resolve: `gatsby-remark-images`,
             options: {
